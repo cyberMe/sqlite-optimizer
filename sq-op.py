@@ -11,9 +11,8 @@ lib_list = []
 def use_cache():
     """load cache with filepath of sqlite files"""
     global lib_list
-    lib_list = [l.strip() for l in open('cache.list').readlines()]
-    #for l in open('cache.list').readlines():
-    #    lib_list.append(l.strip())
+    with open('cache.list') as c_f:
+        lib_list = [l.strip() for l in c_f.readlines()]
 
 def search_lib(s_path):
     """search sqlite3 database in userpath"""
@@ -25,10 +24,9 @@ def search_lib(s_path):
             try:
                 if os.stat(fullname).st_size > 1024*1024*100:
                     continue
-                fdesc = open(fullname,  encoding="latin-1")
-                if fdesc.read(15) == sqlstr:
-                    lib_list.append(fullname)
-                fdesc.close()
+                with open(fullname,  encoding="latin-1") as fdesc:
+                    if fdesc.read(15) == sqlstr:
+                        lib_list.append(fullname)
             except UnicodeDecodeError:
                 print("UnicodeDecodeError   " + path + os.sep + file)
             except OSError:
@@ -37,6 +35,9 @@ def search_lib(s_path):
                 print("io error" + fullname)
 
 def optimize_it():
+    """
+    run sqlite3 for searched files with vacuum command
+    """
     global lib_list
     for lib in lib_list:
         try:
@@ -48,10 +49,9 @@ def optimize_it():
             print(lib + " CalledProcessError")
 
 def save_cache():
-    c_f = open('cache.list',  'wt')
-    for l in lib_list:
-        c_f.write(l + '\n')
-    c_f.close()
+    with open('cache.list',  'wt') as c_f:
+        for l in lib_list:
+            c_f.write(l + '\n')
 
 if __name__ == '__main__':
     print("start")
